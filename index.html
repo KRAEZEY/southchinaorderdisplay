@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#c9141c" />
+  <title>SOUTH CHINA EXPRESS — Order Status</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --red: #c9141c;
+      --red-dark: #8f0b10;
+      --gold: #f4c64f;
+      --cream: #fff9ec;
+      --ink: #201b1c;
+      --muted: #6c6263;
+      --green: #14833b;
+      --green-soft: #e9f8ee;
+      --panel: rgba(255,255,255,.96);
+      --border: #eadfce;
+      --shadow: 0 14px 38px rgba(35, 20, 15, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(244,198,79,.20), transparent 32%),
+        linear-gradient(180deg, #fff8e8 0%, #f6efe4 100%);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--red-dark), var(--red));
+      color: white;
+      border-bottom: 5px solid var(--gold);
+      padding: 18px 22px;
+    }
+
+    .header-inner {
+      max-width: 1500px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 58px);
+      line-height: .95;
+      letter-spacing: .02em;
+      font-weight: 950;
+    }
+
+    .brand p {
+      margin: 9px 0 0;
+      color: #fff4ce;
+      font-size: clamp(14px, 1.5vw, 22px);
+      font-weight: 700;
+    }
+
+    .live {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #52e27f;
+      box-shadow: 0 0 0 5px rgba(82,226,127,.15);
+    }
+
+    main {
+      width: 100%;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: clamp(14px, 2.2vw, 30px);
+      flex: 1;
+    }
+
+    .intro {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .intro h2 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 42px);
+    }
+
+    .intro p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: clamp(14px, 1.25vw, 18px);
+    }
+
+    .updated {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(14px, 2vw, 24px);
+      align-items: start;
+    }
+
+    .column {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .column-head {
+      padding: 17px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .column-head.preparing {
+      background: #fff3cf;
+    }
+
+    .column-head.ready {
+      background: var(--green-soft);
+    }
+
+    .column-title {
+      margin: 0;
+      font-size: clamp(22px, 2.2vw, 34px);
+      font-weight: 950;
+    }
+
+    .count {
+      min-width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: white;
+      font-weight: 950;
+      font-size: 20px;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .orders {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .order {
+      min-height: 122px;
+      border-radius: 18px;
+      border: 2px solid #eadfce;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 14px 12px;
+    }
+
+    .order.ready {
+      border-color: #8bd19e;
+      background: #f2fff6;
+    }
+
+    .order .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .order .number {
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: .04em;
+    }
+
+    .order .customer {
+      margin-top: 8px;
+      font-size: clamp(17px, 1.6vw, 23px);
+      font-weight: 900;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .order .full {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      overflow-wrap: anywhere;
+    }
+
+    .ready .number {
+      color: var(--green);
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      min-height: 160px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      font-size: 18px;
+    }
+
+    .empty strong {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .notice {
+      margin-top: 18px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .error {
+      display: none;
+      margin-bottom: 16px;
+      border: 1px solid #e7a2a2;
+      background: #fff0f0;
+      color: #8a1111;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 760px) {
+      header {
+        padding: 15px 15px;
+      }
+
+      .header-inner {
+        align-items: flex-start;
+      }
+
+      .live {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      main {
+        padding: 12px;
+      }
+
+      .intro {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .updated {
+        text-align: left;
+      }
+
+      .board {
+        grid-template-columns: 1fr;
+      }
+
+      .column {
+        border-radius: 18px;
+      }
+
+      .orders {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 10px;
+        gap: 9px;
+      }
+
+      .order {
+        min-height: 105px;
+        border-radius: 14px;
+        padding: 10px 8px;
+      }
+
+      .order .number {
+        font-size: clamp(28px, 11vw, 42px);
+      }
+
+      .order .customer {
+        font-size: 16px;
+      }
+
+      .order .full {
+        display: none;
+      }
+
+      .notice {
+        margin-top: 12px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .brand h1 {
+        font-size: 26px;
+      }
+
+      .brand p {
+        font-size: 12px;
+      }
+
+      .live span:last-child {
+        display: none;
+      }
+    }
+
+    @media (min-width: 1150px) {
+      .orders {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="page">
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <h1>SOUTH CHINA EXPRESS</h1>
+        <p>Customer Order Status</p>
+      </div>
+
+      <div class="live" aria-label="Live order board">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="intro">
+      <div>
+        <h2>Watch for your order number</h2>
+        <p>When your number moves to READY FOR PICKUP, come grab your order.</p>
+      </div>
+      <div class="updated" id="lastUpdated">Connecting…</div>
+    </div>
+
+    <div class="error" id="errorBox"></div>
+
+    <section class="board" aria-live="polite">
+      <div class="column">
+        <div class="column-head preparing">
+          <h3 class="column-title">🍳 Being Prepared</h3>
+          <div class="count" id="preparingCount">0</div>
+        </div>
+        <div class="orders" id="preparingOrders">
+          <div class="empty">
+            <div><strong>No orders yet</strong>New orders will appear here automatically.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="column-head ready">
+          <h3 class="column-title">✅ Ready for Pickup</h3>
+          <div class="count" id="readyCount">0</div>
+        </div>
+        <div class="orders" id="readyOrders">
+          <div class="empty">
+            <div><strong>Nothing ready yet</strong>Ready orders will appear here automatically.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="notice">
+      This screen displays order numbers and customer names only. Phone numbers, notes, totals, and payment information stay private.
+    </div>
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://xbomdoryfqyxiubtrffd.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_iP4E_cTzYcqVz3JTmC99oA_dNCEJe8N";
+
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const preparingOrders = document.getElementById("preparingOrders");
+  const readyOrders = document.getElementById("readyOrders");
+  const preparingCount = document.getElementById("preparingCount");
+  const readyCount = document.getElementById("readyCount");
+  const lastUpdated = document.getElementById("lastUpdated");
+  const errorBox = document.getElementById("errorBox");
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function displayNumber(orderNumber) {
+    const text = String(orderNumber || "");
+    const pieces = text.split("-");
+    return pieces.length ? pieces[pieces.length - 1] : text;
+  }
+
+  function renderOrder(order, isReady) {
+    return `
+      <article class="order ${isReady ? "ready" : ""}">
+        <div class="label">ORDER</div>
+        <div class="number">${escapeHtml(displayNumber(order.order_number))}</div>
+        <div class="customer">${escapeHtml(order.customer_name || "Customer")}</div>
+        <div class="full">${escapeHtml(order.order_number)}</div>
+      </article>
+    `;
+  }
+
+  function renderEmpty(kind) {
+    if (kind === "ready") {
+      return `
+        <div class="empty">
+          <div><strong>Nothing ready yet</strong>Ready orders will appear here automatically.</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="empty">
+        <div><strong>No orders being prepared</strong>New orders will appear here automatically.</div>
+      </div>
+    `;
+  }
+
+  async function loadBoard() {
+    try {
+      const { data, error } = await db.rpc("get_public_order_board");
+
+      if (error) throw error;
+
+      const orders = Array.isArray(data) ? data : [];
+      const preparing = orders.filter(o =>
+        o.order_status === "NEW" || o.order_status === "PREPARING"
+      );
+      const ready = orders.filter(o => o.order_status === "READY");
+
+      preparingCount.textContent = preparing.length;
+      readyCount.textContent = ready.length;
+
+      preparingOrders.innerHTML = preparing.length
+        ? preparing.map(o => renderOrder(o, false)).join("")
+        : renderEmpty("preparing");
+
+      readyOrders.innerHTML = ready.length
+        ? ready.map(o => renderOrder(o, true)).join("")
+        : renderEmpty("ready");
+
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+
+      lastUpdated.textContent =
+        "Updated " +
+        new Date().toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+    } catch (error) {
+      console.error("Order board error:", error);
+      errorBox.textContent =
+        "Order board is temporarily unable to update. It will keep trying automatically.";
+      errorBox.style.display = "block";
+      lastUpdated.textContent = "Reconnecting…";
+    }
+  }
+
+  loadBoard();
+  setInterval(loadBoard, 5000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadBoard();
+  });
+</script>
+</body>
+</html>
