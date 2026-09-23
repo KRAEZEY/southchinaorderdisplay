@@ -372,6 +372,150 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
+
+    /* === POLISHED CUSTOMER ORDER PROGRESS === */
+    body {
+      background:
+        radial-gradient(circle at top right, rgba(243,201,105,.22), transparent 30%),
+        linear-gradient(180deg,#fffaf1 0%,#f5efe5 100%);
+    }
+
+    header {
+      box-shadow:0 5px 20px rgba(0,0,0,.18);
+    }
+
+    .intro {
+      background:#fff;
+      border:1px solid #eadfce;
+      border-radius:18px;
+      padding:18px 20px;
+      box-shadow:0 8px 24px rgba(0,0,0,.08);
+      margin-bottom:18px;
+    }
+
+    .intro h2 {
+      color:#151515;
+      margin-bottom:5px;
+    }
+
+    .intro p {
+      color:#666;
+      font-weight:700;
+    }
+
+    .board {
+      align-items:start;
+    }
+
+    .column {
+      box-shadow:0 10px 28px rgba(0,0,0,.09);
+      border:1px solid #eadfce;
+    }
+
+    .column-head {
+      min-height:66px;
+    }
+
+    .column-head.preparing {
+      background:linear-gradient(135deg,#c36a13,#df8427);
+    }
+
+    .column-head.ready {
+      background:linear-gradient(135deg,#18864b,#20a05a);
+    }
+
+    .count {
+      min-width:38px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      padding:0 10px;
+      background:rgba(255,255,255,.20);
+      border:1px solid rgba(255,255,255,.35);
+      border-radius:999px;
+    }
+
+    .order {
+      border:2px solid #ece3d6;
+      box-shadow:0 5px 14px rgba(0,0,0,.06);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+
+    .order.ready {
+      border-color:#9dd8b5;
+      background:linear-gradient(180deg,#f5fff8,#eaf8ef);
+    }
+
+    .order .number {
+      letter-spacing:.02em;
+    }
+
+    .order .customer-name {
+      font-weight:900;
+    }
+
+    .notice {
+      background:#fff;
+      border:1px solid #eadfce;
+      border-radius:14px;
+      padding:13px 15px;
+      color:#666;
+      box-shadow:0 5px 15px rgba(0,0,0,.05);
+    }
+
+    .status-guide {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .status-guide span {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:.78rem;
+      font-weight:900;
+      background:#f5f5f5;
+      border:1px solid #e2e2e2;
+    }
+
+    .status-guide .prep-guide { color:#9a500d; background:#fff4e7; border-color:#f1c99f; }
+    .status-guide .ready-guide { color:#126537; background:#eaf8ef; border-color:#b7dfc5; }
+
+    @media (max-width:650px) {
+      .intro {
+        padding:15px;
+        border-radius:15px;
+      }
+
+      .intro h2 {
+        font-size:1.22rem;
+      }
+
+      .orders {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .column-head {
+        min-height:58px;
+      }
+
+      .column-title {
+        font-size:1rem;
+      }
+
+      .notice {
+        font-size:.78rem;
+      }
+    }
+
+    @media (max-width:360px) {
+      .orders { grid-template-columns:1fr; }
+    }
+
   </style>
 </head>
 
@@ -398,6 +542,10 @@
         <p>When your number moves to READY FOR PICKUP, come grab your order.</p>
       </div>
       <div class="updated" id="lastUpdated">Connecting…</div>
+    </div>
+    <div class="status-guide" aria-label="Order status guide">
+      <span class="prep-guide">🍳 Being Prepared</span>
+      <span class="ready-guide">✅ Ready for Pickup</span>
     </div>
 
     <div class="error" id="errorBox"></div>
